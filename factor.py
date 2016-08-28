@@ -39,9 +39,13 @@ class FactorizationDict:
         
     # magic methods
     def __getitem__(self, key: int) -> Counter:
-        return self._factors[key]
-    def __setitem__(self, key: int, factors: Counter) -> None:
-        self._factors[key] = factors
+        try:
+            return self._factors[key]
+        except KeyError:
+            if key > self.maxElem:
+                raise
+            else:
+                return self.factor(key)
     def __len__(self) -> int:
         return len(self._factors)
     def __iter__(self) -> Iterable:
@@ -67,7 +71,7 @@ class FactorizationDict:
         for prime in self.primes[:index]:
             n = 2
             while prime*n < self.maxElem:
-                self[prime*n] = self.factor(prime) + self.factor(n)
+                self._factors[prime*n] = self.factor(prime) + self.factor(n)
                 n += 1
     def factor(self, n: int) -> int:
         """ factor an element into prime powers. saves intermediate results
@@ -84,7 +88,7 @@ class FactorizationDict:
         for prime in self.primes:
             if n % prime == 0:
                 factorization = self.factor(prime) + self.factor(n//prime)
-                self[n] = factorization
+                self._factors[n] = factorization
                 return factorization
                 
     def totient(self, n: int) -> int:
