@@ -10,7 +10,6 @@ from factor import FactorizationDict, product
 from random import randint
 
 def test_factorization(F: FactorizationDict) -> None:
-    F = FactorizationDict(5000, fillFactorTree=True)
     for n in F:
         F.factor(n)
         factors = F[n]
