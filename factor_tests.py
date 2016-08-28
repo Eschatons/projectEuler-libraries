@@ -8,7 +8,7 @@ Created on Sat Aug 27 15:32:20 2016
 # tests for factor.py
 from factor import FactorizationDict, product
 from random import randint
-
+from bisect import bisect
 def test_factorization(F: FactorizationDict) -> None:
     for n in F:
         F.factor(n)
@@ -82,7 +82,7 @@ def test_lcm(F: FactorizationDict) -> None:
         while d % b != 0 or d % a != 0:
             d += m
         return d
-    for n in range(50):
+    for _ in range(50):
         a, b = randint(1, F.maxElem), randint(1, F.maxElem)
         a *= -1**randint(1, 2)
         b *= -1**randint(1, 2)
@@ -99,13 +99,39 @@ def test_lcm(F: FactorizationDict) -> None:
     print('test_lcm passed!')
 
 def test_multiplicative_group_mod_n_base_k(F: FactorizationDict) -> None:
-    print('test not yet written')
+    print('test_multiplicative_group_mod_n_base_k not yet written')
     
-F = FactorizationDict(5000, fillFactorTree = True)            
-test_factorization(F)
-test_fill_factor_tree()
-test_repr(F)
-test_totient(F)
-test_gcd(F)
-test_lcm(F)
-test_multiplicative_group_mod_n_base_k
+def test_count_divisors(F: FactorizationDict) -> None:
+    def find_divisors_slow(n: int) -> int:
+        total = 0
+        for m in range(1, n+1):
+            if n % m == 0:
+                total += 1
+        return total
+                
+        
+    for _ in range(30):
+        n = randint(1, F.maxElem)
+        fastD = F.count_divisors(n)
+        slowD = find_divisors_slow(n)
+        try:
+            assert(fastD == slowD)
+        except Exception as err:
+            print('n = {0}'.format(n))
+            print('count_divisors({0}) = {1}'.format(n, fastD))
+            print('find_divisors_slow({0}) = {1}'.format(n, slowD))
+    print('test_count_divisors passed!')
+    
+
+def run_all_tests():
+    F = FactorizationDict(5000, fillFactorTree = True)            
+    test_factorization(F)
+    test_fill_factor_tree()
+    test_repr(F)
+    test_totient(F)
+    test_gcd(F)
+    test_lcm(F)
+    test_multiplicative_group_mod_n_base_k(F)
+    test_count_divisors(F)
+    print('ALL TESTS PASSED!')
+run_all_tests()

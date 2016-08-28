@@ -38,6 +38,13 @@ class FactorizationDict:
 
         
     # magic methods
+        
+    def __contains__(self, key: int) -> bool:
+        return key in self._factors
+    
+    def __eq__(self, other) -> bool:
+        return self._factors == other._factors
+
     def __getitem__(self, key: int) -> Counter:
         try:
             return self._factors[key]
@@ -46,33 +53,34 @@ class FactorizationDict:
                 raise
             else:
                 return self.factor(key)
+                
+    def __iter__(self) -> Iterable:
+        return iter(self._factors)        
+                
     def __len__(self) -> int:
         return len(self._factors)
-    def __iter__(self) -> Iterable:
-        return iter(self._factors)
-    def __contains__(self, key: int) -> bool:
-        return key in self._factors
     
-    def __eq__(self, other) -> bool:
-        return self._factors == other._factors
-
-    def __str__(self) -> str:
-        return str(self._factors)
     def __repr__(self) -> str:
         return 'FactorizationDict(maxElem = {0}, fillFactorTree = {1})'.format(
         self.maxElem, self.filledFactorTree)
+
+    def __str__(self) -> str:
+        return str(self._factors)
+        
+
         
     # non-magic methods
-    def fill_factor_tree(self) -> None:
-        """ precomputes entire factorization tree. this is somewhat optimized
-        since we can create each number from it's factorization. """
-        root = ceil(sqrt(self.maxElem))
-        index = bisect(self.primes, max(3, root))
-        for prime in self.primes[:index]:
-            n = 2
-            while prime*n < self.maxElem:
-                self._factors[prime*n] = self.factor(prime) + self.factor(n)
-                n += 1
+        
+    def count_divisors(self, n: int) -> int:
+        """ returns number of positive divisors of n; i.e, 
+        count(k):  0<k<|n| and n % k == 0"""
+        n = abs(n)
+        if n == 1:
+            return 1
+        factors = self[n]
+        powers = (factors[x] for x in factors)
+        return product(power+1 for power in powers)
+        
     def factor(self, n: int) -> int:
         """ factor an element into prime powers. saves intermediate results
         using dynamic programming. i.e, factor(125) will save factorizations
@@ -91,6 +99,56 @@ class FactorizationDict:
                 self._factors[n] = factorization
                 return factorization
                 
+    def fill_factor_tree(self) -> None:
+        """ precomputes entire factorization tree. this is somewhat optimized
+        since we can create each number from it's factorization. """
+        root = ceil(sqrt(self.maxElem))
+        index = bisect(self.primes, max(3, root))
+        for prime in self.primes[:index]:
+            n = 2
+            while prime*n < self.maxElem:
+                self._factors[prime*n] = self.factor(prime) + self.factor(n)
+                n += 1
+                
+    def gcd(self, n: int, m: int) -> int:
+        """ find greatest common divisor of n and m.
+        i.e, find maximum d: d%n == 0 and  d%m == 0 """     
+        if n == 0 or m == 0:
+            raise ZeroDivisionError('no GCDs with zero!')
+        n, m = abs(n), abs(m)
+        sharedPrimes = self[n] & self[m]
+        if len(sharedPrimes) > 0:
+            return product(prime**sharedPrimes[prime] for prime in sharedPrimes)
+        else:
+            return 1
+            
+    def lcm(self, n: int, m: int) -> int:
+        """ find least common multiple of n and m.
+        i.e, find minimum k such that k = an = bm, a>=1, b>= 1
+        """
+        if n == 0 or m == 0:
+            raise ZeroDivisionError('no LCMs with zero!')
+        n, m = abs(n), abs(m)
+        greaterPrimePowers = self[n] | self[m]
+        return product(prime**greaterPrimePowers[prime] 
+                for prime in greaterPrimePowers)
+                    
+    def multiplicative_group_mod_n_base_k(self, n: int, k: int=1) -> tuple:
+        """ returns the multiplicative group mod n base k. that is, the set of
+        elements obtained from a*k % n for all a in the integers """
+        seen = []
+        for prime in self.primes:
+            if self.relatively_prime(prime, k):
+                break
+        while n not in seen:
+            seen.append(n)
+            n*= prime
+        return tuple(seen)
+        
+    def relatively_prime(self, n: int, m: int) -> bool:
+        """ two numbers are relatively prime if gcd(n, m) == 1 """
+        return self.gcd(n, m) == 1
+
     def totient(self, n: int) -> int:
         """ calculates euler's totient, ϕ(n), the number of integers
         1 < k < n such that gcd(k, n) == 1 """
@@ -106,41 +164,13 @@ class FactorizationDict:
         return total
     
     
-    def gcd(self, n: int, m: int) -> int:
-        """ find greatest common divisor of n and m.
-        i.e, find maximum d: d%n == 0 and  d%m == 0 """     
-        if n == 0 or m == 0:
-            raise ZeroDivisionError('no GCDs with zero!')
-        n, m = abs(n), abs(m)
-        sharedPrimes = self[n] & self[m]
-        if len(sharedPrimes) > 0:
-            return product(prime**sharedPrimes[prime] for prime in sharedPrimes)
-        else:
-            return 1
+
     
-    def lcm(self, n: int, m: int) -> int:
-        """ find least common multiple of n and m.
-        i.e, find minimum k such that k = an = bm, a>=1, b>= 1
-        """
-        if n == 0 or m == 0:
-            raise ZeroDivisionError('no LCMs with zero!')
-        n, m = abs(n), abs(m)
-        greaterPrimePowers = self[n] | self[m]
-        return product(prime**greaterPrimePowers[prime] 
-                for prime in greaterPrimePowers)
+
     
-    def relatively_prime(self, n: int, m: int) -> bool:
-        """ two numbers are relatively prime if gcd(n, m) == 1 """
-        return self.gcd(n, m) == 1
+
     
-    def multiplicative_group_mod_n_base_k(self, n: int, k: int=1) -> tuple:
-        seen = []
-        for prime in self.primes:
-            if self.relatively_prime(prime, k):
-                break
-        while n not in seen:
-            seen.append(n)
-            n*= prime
-        return tuple(seen)
+
     
-            
+
+        
