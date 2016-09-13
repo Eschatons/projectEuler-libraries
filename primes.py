@@ -8,7 +8,7 @@ import numpy as np
 import random
 from typing import List
 
-def sieve(n:int) -> bool:
+def sieve(n:int) -> List[int]:
     ''' uses sieve of erasthenes to produce primes under n '''
     if n < 2:
         return None
@@ -78,9 +78,3 @@ def is_prime(n: int) -> bool:
     
 
     # based off https://inventwithpython.com/rabinMiller.py
-def random_prime(low, high,):
-    ''' generates a random prime in the range between low and high '''
-    while True:
-        n = random.randrange(low, high)
-        if is_prime(n):
-            return n

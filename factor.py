@@ -8,19 +8,27 @@ Created on Sat Aug 27 14:11:15 2016
 """ factors.py contains the FactorizationDict class number of functions related to factorizing
 integers """
 
-from primes import sieve
-from collections import Counter
 from bisect import bisect
+from collections import Counter
+from itertools import combinations, chain
 from math import sqrt, ceil
-from numbers import Number
-from typing import Iterable
+from primes import sieve
+from typing import Iterable, List, Generator
+from typing import SupportsFloat as Float
 
 
-def product(iterable: Iterable[Number]):
+def product(iterable: Iterable[Float]) -> Float:
     total = 1
     for x in iterable:
         total *= x
     return total
+    
+def all_combinations(iterable: Iterable) -> Generator:
+    """ all n-length combinations of an iterable, starting with the empty
+    iterable  []"""
+    for n in range(len(iterable)+1):
+        for combination in combinations(iterable, n):
+            yield combination
 
 class FactorizationDict:
     """FactorizationDicts hold factorizations of positive integers.
@@ -32,10 +40,9 @@ class FactorizationDict:
         self._factors = {prime: Counter([prime]) for prime in self.primes}
         self._factors[1] = Counter([1])
         self.filledFactorTree = fillFactorTree
-        self.ϕ = self.totient # alias for totient if you want to be fancy
         if fillFactorTree:
             self.fill_factor_tree()
-
+        return None
         
     # magic methods
         
@@ -77,10 +84,24 @@ class FactorizationDict:
         n = abs(n)
         if n == 1:
             return 1
+        
         factors = self[n]
         powers = (factors[x] for x in factors)
         return product(power+1 for power in powers)
-        
+    
+    def divisors(self, n: int) -> List:
+        """ enumerate positive divisors less than n: 
+        i.e, k:  k % n == 0 and 0 < k < |n| """
+        n = abs(n)
+        factors = self[n]
+        expandedFactorization = []
+        for x in factors:
+            for n in range(factors[x]):
+                expandedFactorization.append(x)
+        divisors = {product(combo) for combo in all_combinations(expandedFactorization)}
+        divisors = sorted(divisors)
+        divisors.pop()
+        return sorted(divisors)
     def factor(self, n: int) -> int:
         """ factor an element into prime powers. saves intermediate results
         using dynamic programming. i.e, factor(125) will save factorizations
@@ -163,14 +184,3 @@ class FactorizationDict:
             total *= x**factors[x]-x**(factors[x]-1)
         return total
     
-    
-
-    
-
-    
-
-    
-
-    
-
-        
