@@ -53,6 +53,10 @@ def is_prime(n: int) -> bool:
     True --> n is likely prime
     False --> n is definitely non-prime
     '''
+    try:
+        assert(n == n//1)
+    except AssertionError:
+        raise TypeError('n must be an integer, but is {0}'.format(type(n)))
     if n < 2:
         return False
     
