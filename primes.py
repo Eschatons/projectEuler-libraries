@@ -24,7 +24,7 @@ def sieve(n:int) -> List[int]:
 def miller_rabin_primality(n:int) -> bool:
     ''' stochastic test for primality.
     True --> n is likely prime
-    False --> n is definitely non-prime
+    False --> n is definitely non-prime.
     '''
     # based off https://inventwithpython.com/rabinMiller.py
     s = n-1
@@ -48,14 +48,15 @@ def miller_rabin_primality(n:int) -> bool:
     
 def is_prime(n: int) -> bool:
     '''stochastically tests whether n is prime via trial divison of primes < 1000, 
-    then the miller-rabin primality test. based off https://inventwithpython.com/rabinMiller.py
+    then the miller-rabin primality test. 
+    based off https://inventwithpython.com/rabinMiller.py
     True --> n is likely prime
     False --> n is definitely non-prime
     '''
     if n < 2:
         return False
     
-    lowPrimes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 
+    lowPrimes = np.array([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 
                  61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 
                  137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199,
                  211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283,
@@ -65,12 +66,11 @@ def is_prime(n: int) -> bool:
                  601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691,
                  701, 709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811,
                  821, 823, 827, 829, 839, 853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919,
-                 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997]
-    
-    if n in lowPrimes:
-        return True
+                 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997])
     for prime in lowPrimes:
-        if n % prime == 0:
+        if n == prime:
+            return True
+        elif n % prime == 0:
             return False
     else:
         return miller_rabin_primality(n)
