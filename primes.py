@@ -12,14 +12,13 @@ def sieve(n:int) -> List[int]:
     ''' uses sieve of erasthenes to produce primes under n '''
     if n < 2:
         return None
-    nonPrimes = np.zeros(n, dtype = bool)
-    primes = [2]
-    nonPrimes[4::2] = True
+    isPrime = np.ones(n, dtype = bool)
+    isPrime[0:2] = False
+    isPrime[4::2] = False
     for p in range(3, n):
-        if not nonPrimes[p]:
-            primes.append(p)
-            nonPrimes[p*2::p] = True
-    return primes
+        if isPrime[p]:
+            isPrime[p*2::p] = False
+    return np.nonzero(isPrime)
 
 
 def miller_rabin_primality(n:int) -> bool:
